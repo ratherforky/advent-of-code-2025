@@ -52,6 +52,10 @@ task1
 runTask1 :: IO Int
 runTask1 = runDay 1 task1
 
+------------
+-- Task 2 --
+------------
+
 -- >>> task2 egInput
 -- 6
 

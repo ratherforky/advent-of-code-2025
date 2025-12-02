@@ -1,11 +1,12 @@
 {-# language QuasiQuotes #-}
 module AoCPrelude (
   runDay,
+  module Data.List,
   module Data.String.Interpolate,
   module Flow,
   -- Parsing
   module Text.Yoda,
-  parseInput, int, intSigned, integral,
+  parseInput, digit, int, intSigned, integral,
   everyLine, manyIgnoreWhitespace, tok, delim,
   -- module Text.Pretty.Simple,
   void,
@@ -15,6 +16,7 @@ module AoCPrelude (
   within, betweenOrd, firstJusts
   ) where
 
+import Data.List
 import Data.String.Interpolate
 import Flow
 -- import Text.Megaparsec hiding (State)
@@ -43,7 +45,7 @@ manyIgnoreWhitespace :: Parser a -> Parser [a]
 manyIgnoreWhitespace parser = many (parser <* (space <|> eof))
 
 space :: Parser ()
-space = () <$ satisfy isSpace
+space = () <$ many (satisfy isSpace)
 
 int :: Parser Int
 int = read <$> some digit
@@ -66,8 +68,15 @@ tok :: String -> Parser ()
 tok str = space *> string str *> space
 
 delim :: Parser a -> String -> Parser c -> Parser [a]
-delim elementP delimiter terminator
-  = many (elementP <* (try (tok delimiter) <|> void terminator))
+delim elementP delimiter terminator = do
+  elements <- many (elementP <* tok delimiter)
+  lastElement <- elementP
+  _ <- terminator
+  pure (elements ++ [lastElement])
+
+-- >>> parse (delim digit "," eof) "4,5"
+-- [("45","")]
+
 
 applyN :: Int -> (a -> a) -> a -> a
 applyN n0 f = go n0
