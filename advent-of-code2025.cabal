@@ -17,7 +17,8 @@ library
     import:           warnings
     exposed-modules:  AoCPrelude,
                       Day1,
-                      Day2
+                      Day2,
+                      Day3
     -- other-modules:
     -- other-extensions:
     build-depends:    base ^>=4.21.0.0,
