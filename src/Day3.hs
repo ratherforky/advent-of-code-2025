@@ -39,8 +39,8 @@ maxBatteryDigitsN n ds
              |> take (length ds - n + 1)
              |> foldl' (\(maxVal, rest) (d:ds)
                            -> if d > maxVal
-                             then (d, ds)
-                             else (maxVal, rest))
+                              then (d, ds)
+                              else (maxVal, rest))
                        (-1, [])
              |> (\(maxVal, rest) -> maxVal : maxBatteryDigitsN (n - 1) rest)
 
