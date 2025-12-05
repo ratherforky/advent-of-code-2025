@@ -13,7 +13,8 @@ module AoCPrelude (
   -- Misc
   applyN, applyAll, applyNScan,
   scanUntilNothing,
-  within, betweenOrd, firstJusts
+  within, betweenOrd, firstJusts,
+  converge
   ) where
 
 import Data.List
@@ -113,3 +114,11 @@ betweenOrd maxX minX x = maxX >= x && x >= minX
 firstJusts :: Foldable f => f (Maybe a) -> Maybe a
 firstJusts = msum
 {-# SPECIALISE firstJusts :: [Maybe a] -> Maybe a #-}
+
+converge :: Eq a => (a -> a) -> a -> a
+converge f k = go $ iterate f k
+  where
+    go (x:y:ys)
+      | x == y    = x
+      | otherwise = go (y:ys)
+    go _ = error "iterate is infinite, so this should never happen"

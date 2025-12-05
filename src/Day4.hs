@@ -59,10 +59,20 @@ surroundingCells grid (x,y)
               | (dx, dy) <- kernel
               ]
 
-mapPredicate :: (Cell -> [Cell] -> Bool) -> Map (Int, Int) Cell -> Map (Int, Int) Bool
-mapPredicate p grid
-  = grid
-    |> Map.mapWithKey (\xy c -> p c (surroundingCells grid xy))
+isAccessible :: Map (Int, Int) Cell -> Map (Int, Int) Bool
+isAccessible grid = Map.mapWithKey f grid
+  where
+    f xy Paper = surroundingCells grid xy
+                 |> filter (== Paper)
+                 |> length
+                 |> (< 4)
+    f _  _     = False
+
+countTrues :: Map k Bool -> Int
+countTrues
+  = Map.elems
+ .> filter id
+ .> length
 
 ------------
 -- Task 1 --
@@ -77,14 +87,8 @@ runTask1 = runDay 4 task1
 task1 :: String -> Int
 task1
   = parseCells
- .> mapPredicate task1Predicate
- .> Map.elems
- .> filter id
- .> length
-
-task1Predicate :: Cell -> [Cell] -> Bool
-task1Predicate Paper = filter (== Paper) .> length .> (< 4)
-task1Predicate _     = const False
+ .> isAccessible
+ .> countTrues
 
 ------------
 -- Task 2 --
@@ -94,8 +98,25 @@ runTask2 :: IO Int
 runTask2 = runDay 4 task2
 
 -- >>> task2 egInput
--- 3121910778619
+-- 43
 
 task2 :: String -> Int
-task2 = undefined
+task2 str
+  = Map.intersectionWith paperMoved grid finalGrid
+    |> countTrues
+  where
+    grid = parseCells str
+    finalGrid = converge stepGrid grid
 
+    paperMoved Paper Empty = True
+    paperMoved _ _ = False
+
+
+stepGrid :: Map (Int, Int) Cell -> Map (Int, Int) Cell
+stepGrid grid = Map.intersectionWith stepCell boolGrid grid
+  where
+    boolGrid = isAccessible grid
+
+    stepCell :: Bool -> Cell -> Cell
+    stepCell True Paper = Empty
+    stepCell _ c = c 
