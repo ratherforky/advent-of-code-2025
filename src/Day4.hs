@@ -119,4 +119,4 @@ stepGrid grid = Map.intersectionWith stepCell boolGrid grid
 
     stepCell :: Bool -> Cell -> Cell
     stepCell True Paper = Empty
-    stepCell _ c = c 
+    stepCell _ c = c
