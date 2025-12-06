@@ -7,7 +7,8 @@ module AoCPrelude (
   -- Parsing
   module Text.Yoda,
   parseInput, digit, int, intSigned, integral,
-  everyLine, manyIgnoreWhitespace, tok, delim,
+  everyLine, manyIgnoreWhitespace, tok, delim, delim',
+  whitespace, spaces,
   -- module Text.Pretty.Simple,
   void,
   -- Misc
@@ -43,10 +44,13 @@ newline :: Parser Char
 newline = char '\n'
 
 manyIgnoreWhitespace :: Parser a -> Parser [a]
-manyIgnoreWhitespace parser = many (parser <* (space <|> eof))
+manyIgnoreWhitespace parser = many (parser <* (whitespace <|> eof))
 
-space :: Parser ()
-space = () <$ many (satisfy isSpace)
+whitespace :: Parser ()
+whitespace = () <$ many (satisfy isSpace)
+
+spaces :: Parser ()
+spaces = () <$ many (char ' ')
 
 int :: Parser Int
 int = read <$> some digit
@@ -66,17 +70,18 @@ intSigned
       ]
 
 tok :: String -> Parser ()
-tok str = space *> string str *> space
+tok str = whitespace *> string str *> whitespace
 
 delim :: Parser a -> String -> Parser c -> Parser [a]
 delim elementP delimiter terminatorP
-  = delim' elementP (tok delimiter) terminatorP
+  = delim' (pure ()) elementP (tok delimiter) terminatorP
 
 -- >>> parse (delim digit "," eof) "4,5"
 -- [("45","")]
 
-delim' :: Parser a -> Parser delim -> Parser end -> Parser [a]
-delim' elementP delimiterP terminatorP = do
+delim' :: Parser start -> Parser a -> Parser delim -> Parser end -> Parser [a]
+delim' startP elementP delimiterP terminatorP = do
+  _ <- startP
   elements <- many (elementP <* delimiterP)
   lastElement <- elementP
   _ <- terminatorP
