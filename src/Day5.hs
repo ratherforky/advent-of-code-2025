@@ -3,9 +3,6 @@
 module Day5 where
 
 import AoCPrelude -- parsing
-import Data.Map.Strict (Map)
-import Data.Map.Strict qualified as Map
-import Data.Maybe
 
 -------------
 -- Parsing --

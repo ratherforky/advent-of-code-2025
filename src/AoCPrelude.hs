@@ -69,14 +69,18 @@ tok :: String -> Parser ()
 tok str = space *> string str *> space
 
 delim :: Parser a -> String -> Parser c -> Parser [a]
-delim elementP delimiter terminator = do
-  elements <- many (elementP <* tok delimiter)
-  lastElement <- elementP
-  _ <- terminator
-  pure (elements ++ [lastElement])
+delim elementP delimiter terminatorP
+  = delim' elementP (tok delimiter) terminatorP
 
 -- >>> parse (delim digit "," eof) "4,5"
 -- [("45","")]
+
+delim' :: Parser a -> Parser delim -> Parser end -> Parser [a]
+delim' elementP delimiterP terminatorP = do
+  elements <- many (elementP <* delimiterP)
+  lastElement <- elementP
+  _ <- terminatorP
+  pure (elements ++ [lastElement])
 
 
 applyN :: Int -> (a -> a) -> a -> a
