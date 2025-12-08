@@ -23,11 +23,13 @@ library
                       Day4,
                       Day5,
                       Day6,
-                      Day7
+                      Day7,
+                      Day8
     -- other-modules:
     -- other-extensions:
     build-depends:    base ^>=4.21.0.0,
                       containers,
+                      fgl,
                       flow,
                       mtl,
                       string-interpolate,
