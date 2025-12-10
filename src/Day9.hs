@@ -1,0 +1,170 @@
+{-# language MultilineStrings #-}
+module Day9 where
+
+import AoCPrelude
+
+-------------
+-- Parsing --
+-------------
+
+-- MultilineStrings extension, requires GHC 9.12.1 or above
+egInput :: String
+egInput = """
+7,1
+11,1
+11,7
+9,7
+9,5
+2,5
+2,3
+7,3
+"""
+
+pointsP :: Parser [(Int, Int)]
+pointsP = everyLine ((,) <$> int <* char ',' <*> int)
+
+-- >>> parseMaybe pointsP egInput
+-- Just [(7,1),(11,1),(11,7),(9,7),(9,5),(2,5),(2,3),(7,3)]
+
+------------
+-- Task 1 --
+------------
+
+runTask1 :: IO Int
+runTask1 = runDay 9 task1
+
+-- >>> task1 egInput
+-- 50
+
+-- [((7,1),(11,1)),((7,1),(11,7)),((7,1),(9,7)),((7,1),(9,5)),((7,1),(7,3)),((11,1),(11,7)),((9,7),(11,1)),((9,7),(11,7)),((9,5),(11,1)),((9,5),(11,7)),((9,5),(9,7)),((2,5),(7,1)),((2,5),(11,1)),((2,5),(11,7)),((2,5),(9,7)),((2,5),(9,5)),((2,5),(7,3)),((2,3),(7,1)),((2,3),(11,1)),((2,3),(11,7)),((2,3),(9,7)),((2,3),(9,5)),((2,3),(2,5)),((2,3),(7,3)),((7,3),(11,1)),((7,3),(11,7)),((7,3),(9,7)),((7,3),(9,5))]
+
+
+task1 :: String -> Int
+task1
+  = parseInput pointsP
+ .> (\ps -> [ (p,q) | p <- ps, q <- ps, p < q ]) -- All unique pairings of points.
+                                                 -- `p < q` ensures no reflexive connections
+                                                 -- and no duplicates of (p, q) and (q, p)
+ .> map rectangleArea
+ .> maximum
+
+rectangleArea :: ((Int, Int), (Int, Int)) -> Int
+rectangleArea ((x1,y1), (x2, y2)) = (abs (x2 - x1) + 1) * (abs (y2 - y1) + 1)
+
+------------
+-- Task 2 --
+------------
+
+-- runTask2 :: IO Int
+runTask2 = runDay 9 task2
+
+type Polygon = [((Int,Int), (Int,Int))]
+
+-- >>> task2 egInput
+-- 24
+
+-- task2 :: String -> Int
+task2 str
+  = points
+    |> (\ps -> [ (p,q) | p <- ps, q <- ps, p < q ]) -- All unique pairings of points.
+                                                    -- `p < q` ensures no reflexive connections
+                                                    -- and no duplicates of (p, q) and (q, p)
+    |> sortOn (negate . rectangleArea)
+    |> filter validRectangle
+    |> head
+    -- |> rectangleArea
+  where
+    points = parseInput pointsP str
+    polygon = makePolygon points
+    
+    validRectangle r
+      = not (any (pointIsInRectangle r) points) 
+     && pickOnePointInside r `isInside` polygon   -- Check one point inside rectangle to make sure it's in polygon,
+                                                  -- excluding the case where rectangle encloses a void outside the polygon
+     && not (any (pickOnePointInside .> pointIsInRectangle r) polygon)
+
+makePolygon :: [(Int, Int)] -> [((Int, Int), (Int, Int))]
+makePolygon points = go points
+  where
+    go [p] = [(p, head points)]
+    go (p1:p2:ps) = (p1, p2) : go (p2:ps)
+    go _ = error "unexpected points format"
+
+pickOnePointInside :: ((Int,Int), (Int,Int)) -> (Int, Int)
+pickOnePointInside ((x1, y1), (x2, y2)) = (x1 + dx, y1 + dy)
+  where
+    dx = signum (x2 - x1)
+    dy = signum (y2 - y1)
+
+pointIsInRectangle :: ((Int,Int), (Int,Int)) -> (Int, Int) -> Bool
+pointIsInRectangle ((x1, y1), (x2, y2)) (x,y)
+  = xMin < x && x < xMax
+ && yMin < y && y < yMax
+  where
+    [xMin, xMax] = sort [x1, x2]
+    [yMin, yMax] = sort [y1, y2]
+
+-- >>> pointIsInRectangle (3, 4) ((2,2), (8,8))
+-- True
+-- >>> pointIsInRectangle (2, 4) ((2,2), (8,8))
+-- False
+-- >>> pointIsInRectangle (3, 9) ((2,2), (8,8))
+-- False
+
+
+-- https://www.geeksforgeeks.org/dsa/how-to-check-if-a-given-point-lies-inside-a-polygon/
+isInside :: (Int,Int) -> Polygon -> Bool
+isInside xy = filter (rightProjectionIntersects xy) .> length .> odd
+
+rightIntersections :: (Int,Int) -> Polygon -> Int
+rightIntersections xy = filter (rightProjectionIntersects xy) .> length
+
+-- Adapted from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#cite_note-GGIII-3
+-- Specialised to y2 = y1; x2 = x1 + 1
+rightProjectionIntersects :: (Int,Int) -> ((Int,Int), (Int,Int)) -> Bool
+rightProjectionIntersects (x1,y1) ((x3,y3), (x4, y4))
+  = 0 <= u' && u' <= (y3 - y4)
+ && 0 <= t' -- We project rightward infinitely, so we don't need to give an upper bound for t'
+  where
+    u' = negate (y1 - y3)
+
+    t' = negate ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4))
+--   = (x < x1 || x < x2)
+--  && max y1 y2 > y && y > min y1 y2
+
+-- >>> rightProjectionIntersects (20,-9) ((-10,1), (1,-10))
+-- False
+
+-- https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+
+printInsidePolygon :: [(Int, Int)] -> IO ()
+printInsidePolygon points
+  -- = putStrLn $ unlines [ [ showPoint (x, y) | x <- [0..maxX] ] | y <- [0..maxY]]
+  = print [ [ (x, y) `rightIntersections` polygon | x <- [0..maxX] ] | y <- [0..maxY]]
+  where
+    polygon = makePolygon points
+    maxX = maximum (map fst points)
+    maxY = maximum (map snd points)
+
+    showPoint p
+      | p `elem` points      = '#'
+      | p `isInside` polygon = 'X'
+      | otherwise            = '.'
+
+-- ............
+-- .......#XXX#
+-- XXXXXXXX....
+-- XX#....#XXXX
+-- XXX.........
+-- XX#......#XX
+-- XXXXXXXXXX..
+-- .........#X#
+
+-- [[0,0,0,0,0,0,0,0,0,0,0,0]
+-- ,[2,2,2,2,2,2,2,2,1,1,1,1]
+-- ,[1,1,1,1,1,1,1,1,0,0,0,0]
+-- ,[3,3,3,2,2,2,2,2,1,1,1,1]
+-- ,[1,1,1,0,0,0,0,0,0,0,0,0]
+-- ,[3,3,3,2,2,2,2,2,2,2,1,1]
+-- ,[1,1,1,1,1,1,1,1,1,1,0,0]
+-- ,[2,2,2,2,2,2,2,2,2,2,1,1]]
