@@ -63,6 +63,14 @@ type Polygon = [((Int,Int), (Int,Int))]
 -- >>> task2 egInput
 -- 24
 
+-- >>> rectangleIntersectsPolygon ((2,3),(9,5)) egInputPoly
+-- False
+-- >>> rectangleIntersectsPolygon ((7,1),(11,7)) egInputPoly
+-- True
+-- >>> egInputPoly
+-- [((7,1),(11,1)),((11,1),(11,7)),((11,7),(9,7)),((9,7),(9,5)),((9,5),(2,5)),((2,5),(2,3)),((2,3),(7,3)),((7,3),(7,1))]
+
+
 -- ((17217,85603),(82570,14626))
 
 -- >>> pickOnePointInside ((17217,85603),(82570,14626))
@@ -83,10 +91,12 @@ task2 str
     polygon = makePolygon points
     
     validRectangle r
-      = not (any (pointIsInRectangle r) points) 
+      = True -- not (any (pointIsInRectangle r) points) 
      && pickOnePointInside r `isInside` polygon   -- Check one point inside rectangle to make sure it's in polygon,
                                                   -- excluding the case where rectangle encloses a void outside the polygon
-     && not (any (pickOnePointInside .> pointIsInRectangle r) polygon) -- TODO: change to check of polygon edges intersecting with rectangle edges
+     && not (any (pickOnePointInside .> pointIsInRectangle r) polygon)
+     && not (rectangleIntersectsPolygon r polygon)
+    --  && not (any (pickOnePointInside .> pointIsInRectangle r) polygon)
 
 task2Points :: IO [(Int,Int)]
 task2Points = do
@@ -180,6 +190,37 @@ rightProjectionIntersects' poly (x1,y1) ((x3,y3), (x4, y4))
     Just (_, (x6, y6)) = find (\(xy, _) -> xy == (x4,y4)) poly
 
     dirSign = signum ((y5 - y3) * (y6 - y3))
+
+
+rectangleIntersectsPolygon :: ((Int,Int), (Int,Int)) -> Polygon -> Bool
+rectangleIntersectsPolygon r poly
+  = or [ linesIntersect rEdge pEdge | rEdge <- rectangleEdges r, pEdge <- poly]
+  -- = [ (rEdge, pEdge) | rEdge <- rectangleEdges r, pEdge <- poly, linesIntersect rEdge pEdge]
+
+rectangleEdges :: ((Int,Int), (Int,Int)) -> [((Int,Int), (Int,Int))]
+rectangleEdges ((x1,y1), (x2, y2))
+  = [ ((x1,y1), (x2,y1))
+    , ((x1,y1), (x1,y2))
+    , ((x2,y1), (x2,y2))
+    , ((x1,y2), (x2,y2))
+    ]
+
+-- Adapted from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#cite_note-GGIII-3
+linesIntersect :: ((Int,Int), (Int,Int)) -> ((Int,Int), (Int,Int)) -> Bool
+linesIntersect ((x1,y1), (x2,y2)) ((x3,y3), (x4, y4))
+   = 0 < u && u < 1 -- Strict inequality to exclude the vertexes
+  && 0 < t && t < 1
+  where
+    t, u :: Float
+    t = (fromIntegral ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4))
+       / fromIntegral ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)))
+
+    u = negate (fromIntegral ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3))
+              / fromIntegral ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)))
+
+-- >>> linesIntersect ((2,5),(9,5)) ((7,1),(7,7))
+-- (0.6666667,0.71428573)
+
 
 egInputPoints = parseInput pointsP egInput
 
