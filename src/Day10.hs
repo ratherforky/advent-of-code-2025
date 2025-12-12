@@ -1,9 +1,14 @@
-{-# language MultilineStrings #-}
+-- {-# language MultilineStrings #-}
 {-# language OverloadedRecordDot #-}
 {-# language ImportQualifiedPost #-}
+{-# language TypeApplications #-}
+{-# LANGUAGE DataKinds #-}
 module Day10 where
 
 import AoCPrelude
+
+import Control.Monad
+
 import Data.Graph.Inductive (LNode, LEdge)
 import Data.Graph.Inductive qualified as FGL
 import Data.Graph.Inductive.PatriciaTree (Gr)
@@ -11,6 +16,11 @@ import Data.Graph.Inductive.Dot
 import Data.Bimap (Bimap)
 import Data.Bimap qualified as Bimap
 import System.Process
+
+-- import Math.Tensor.LinearAlgebra.Matrix
+import Math.LinearEquationSolver
+import Language.Hasmtlib as SMT
+import Language.Hasmtlib.Type.Solver (solveMinimized) -- Doesn't compile with GHC 9.12 https://github.com/bruderj15/Hasmtlib/issues/125
 
 import Debug.Todo
 
@@ -20,11 +30,8 @@ import Debug.Todo
 
 -- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
-[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
-[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
-[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
-"""
+egInput = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}\n[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}\n[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}"
+
 
 data Machine = MkInputLine
   { target   :: [Light]
@@ -204,4 +211,62 @@ task2 :: String -> Int
 task2
   = error "todo"
 
+testSolver :: IO (Maybe [Integer])
+testSolver = solveIntegerLinearEqs Z3 [[2, 3, 4],[6, -3, 9],[2, 0, 1]] [20, -6, 8]
 
+testSolverMachine1 :: IO [[Integer]]
+testSolverMachine1 
+  = solveIntegerLinearEqsAll Z3 1000
+      [ [0,0,0,0,1,1]
+      , [0,1,0,0,0,1]
+      , [0,0,1,1,1,0]
+      , [1,1,0,1,0,0]
+      ]
+      [3,5,4,7]
+
+-- testHasmtlib :: IO (Result, Maybe Integer)
+testHasmtlib :: IO (Result, Maybe [Integer])
+testHasmtlib = solveWith @OMT (solver z3) $ do
+    setLogic "QF_LIRA" -- "QF_LIA"
+
+    [a,b,c,d,e,f] <- sequence (replicate 6 (var @IntSort))
+
+    assert $ e + f === 3
+    assert $ b + f === 5
+    assert $ c + d + e === 4
+    assert $ a + b + d === 7
+    -- assert $ x `SMT.mod` 42 === y
+    -- assert $ y + x + 1 >=? x + y
+
+    minimize (sum [a,b,c,d,e,f])
+
+    pure [a,b,c,d,e,f]
+
+
+    -- setLogic "QF_LIRA"
+
+    -- xs <- replicateM 10 $ var @RealSort
+
+    -- forM_ xs $ \x -> assert $ x >=? 0 SMT.&& x <? fromIntegral (length xs)
+    -- forM_ xs $ assert . isIntSort
+    -- assert $ distinct xs
+
+    -- return xs
+  
+-- testHasmtlib :: IO  (Result,  Maybe (Decoded (Result, Solution)))
+  -- solveWith @Pipe (solver z3) $ do
+  --   setLogic "QF_LIA"
+
+  --   [a,b,c,d,e,f] <- sequence (replicate 6 (var @IntSort))
+
+  --   assert $ e + f === 3
+  --   assert $ b + f === 5
+  --   assert $ c + d + e === 4
+  --   assert $ a + b + d === 7
+  --   -- assert $ x `SMT.mod` 42 === y
+  --   -- assert $ y + x + 1 >=? x + y
+
+  --   let total = sum [a,b,c,d,e,f]
+
+  --   -- return [a,b,c,d,e,f]
+  --   solveMinimized total Nothing Nothing

@@ -1,0 +1,3 @@
+packages: advent-of-code2025.cabal
+optional-packages: ./safe-tensor-0.2.1.1/*.cabal
+

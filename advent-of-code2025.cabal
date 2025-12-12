@@ -29,14 +29,17 @@ library
                       Day10
     -- other-modules:
     -- other-extensions:
-    build-depends:    base ^>=4.21.0.0,
+    build-depends:    base,
                       bimap,
                       containers,
                       fgl,
                       fgl-visualize,
                       flow,
+                      hasmtlib,
+                      linearEqSolver,
                       mtl,
                       process,
+                      -- safe-tensor,
                       string-interpolate,
                       todo,
                       yoda
