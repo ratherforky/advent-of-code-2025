@@ -2,7 +2,7 @@
 module AoCPrelude (
   runDay,
   module Data.List,
-  module Data.String.Interpolate,
+  -- module Data.String.Interpolate,
   module Flow,
   -- Parsing
   module Text.Yoda,
