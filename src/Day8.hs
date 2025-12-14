@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 {-# language OverloadedRecordDot #-}
 {-# language ImportQualifiedPost #-}
 {-# language TypeApplications #-}
@@ -17,9 +17,8 @@ import Data.Maybe
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 162,817,812
 57,618,57
 906,360,560
@@ -40,7 +39,7 @@ egInput = """
 862,61,35
 984,92,344
 425,690,689
-"""
+|]
 
 data Point3D = MkPoint
   { x :: Int

@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 module Day4 where
 
@@ -11,9 +11,8 @@ import Data.Maybe
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 ..@@.@@@@.
 @@@.@.@.@@
 @@@@@.@.@@
@@ -24,7 +23,7 @@ egInput = """
 @.@@@.@@@@
 .@@@@@@@@.
 @.@.@@@.@.
-"""
+|]
 
 data Cell = Empty | Paper
   deriving (Show, Eq)

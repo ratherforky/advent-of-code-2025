@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 module Day3 where
 
 import AoCPrelude -- parsing
@@ -7,14 +7,13 @@ import AoCPrelude -- parsing
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 987654321111111
 811111111111119
 234234234234278
 818181911112111
-"""
+|]
 
 ------------------
 -- Common Task --

@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 module Day5 where
 
@@ -8,9 +8,8 @@ import AoCPrelude -- parsing
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 3-5
 10-14
 16-20
@@ -22,7 +21,7 @@ egInput = """
 11
 17
 32
-"""
+|]
 
 data Range = MkRange Int Int deriving (Show, Eq)
 data Database = MkDB [Range] [Int] deriving (Show, Eq)

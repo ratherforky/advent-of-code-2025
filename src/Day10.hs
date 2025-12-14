@@ -1,4 +1,4 @@
--- {-# language MultilineStrings #-}
+-- {-# language QuasiQuotes #-}
 {-# language OverloadedRecordDot #-}
 {-# language ImportQualifiedPost #-}
 {-# language TypeApplications #-}
@@ -23,12 +23,14 @@ import Language.Hasmtlib as SMT
 import Language.Hasmtlib.Type.Solver (solveMinimized) -- Doesn't compile with GHC 9.12 https://github.com/bruderj15/Hasmtlib/issues/125
 
 import Debug.Todo
+import Data.Foldable (traverse_, for_)
+import Data.Traversable (for)
+import Data.Maybe (fromJust)
 
 -------------
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
 egInput = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}\n[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}\n[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}"
 
@@ -36,7 +38,7 @@ egInput = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}\n[...#.] (0,2,3,4) (
 data Machine = MkInputLine
   { target   :: [Light]
   , buttons  :: [Button]
-  , joltages :: [Int]
+  , joltages :: [Integer]
   }
   deriving (Show, Eq)
 data Light = Off | On deriving (Show, Eq, Ord, Enum)
@@ -54,8 +56,8 @@ lightP = On <$ char '#'
 buttonP :: Parser Button
 buttonP = delim' (tok "(") int (char ',') (tok ")")
 
-joltagesP :: Parser [Int]
-joltagesP = delim' (tok "{") int (char ',') (tok "}")
+joltagesP :: Parser [Integer]
+joltagesP = delim' (tok "{") (fromIntegral <$> int) (char ',') (tok "}")
 
 machineP :: Parser Machine
 machineP
@@ -202,32 +204,55 @@ toggleAtIndex i = go 0
 -- Task 2 --
 ------------
 
-runTask2 :: IO Int
-runTask2 = runDay (error "add day number") task2
+runTask2 :: IO Integer
+runTask2 = readFile "src/inputs/Day10Input.txt" >>= task2
+
+-- >>> runTask2
 
 -- >>> task2 egInput
+-- 33
 
-task2 :: String -> Int
+task2 :: String -> IO Integer
 task2
-  = error "todo"
+  = parseInput machinesP
+ .> traverse solveMinButtonPresses
+ .> fmap (map (snd .> fromJust) .> sum)
 
-testSolver :: IO (Maybe [Integer])
-testSolver = solveIntegerLinearEqs Z3 [[2, 3, 4],[6, -3, 9],[2, 0, 1]] [20, -6, 8]
+solveMinButtonPresses :: Machine -> IO (Result, Maybe Integer)
+solveMinButtonPresses m = solveWith @OMT (solver z3) $ do
 
-testSolverMachine1 :: IO [[Integer]]
-testSolverMachine1 
-  = solveIntegerLinearEqsAll Z3 1000
-      [ [0,0,0,0,1,1]
-      , [0,1,0,0,0,1]
-      , [0,0,1,1,1,0]
-      , [1,1,0,1,0,0]
-      ]
-      [3,5,4,7]
+  -- Make variables for each button.
+  -- These will be the number of times they need to be pressed.
+  -- We will use their list index to refer to them
+  vs <- sequence ((var @IntSort) <$ m.buttons)
+
+  -- All variables are the number of button presses for a particular button,
+  -- therefore they must always be 0 or more. No negative presses.
+  for_ vs $ \v -> do
+    assert $ v >=? 0            
+
+
+  for_ (zip [0 ..] m.joltages) $ \(light, targetJoltage) -> do
+    let buttonVarsWhichSwitchLight
+          = zip [0 :: Int ..] m.buttons
+            |> filter (\(_,bs) -> light `elem` bs)
+            |> map (fst .> (vs !!))
+
+    assert $ sum buttonVarsWhichSwitchLight
+                === fromInteger targetJoltage
+
+  let totalButtonPresses = sum vs
+
+  minimize totalButtonPresses
+
+  pure totalButtonPresses
+
 
 -- testHasmtlib :: IO (Result, Maybe Integer)
 testHasmtlib :: IO (Result, Maybe [Integer])
 testHasmtlib = solveWith @OMT (solver z3) $ do
-    setLogic "QF_LIRA" -- "QF_LIA"
+-- testHasmtlib = solveWith @OMT (solver $ debugging verbosely z3) $ do
+    setLogic "QF_LIA" -- "QF_LIA"
 
     [a,b,c,d,e,f] <- sequence (replicate 6 (var @IntSort))
 
@@ -237,6 +262,8 @@ testHasmtlib = solveWith @OMT (solver z3) $ do
     assert $ a + b + d === 7
     -- assert $ x `SMT.mod` 42 === y
     -- assert $ y + x + 1 >=? x + y
+    -- assert $ (a + b + c + d + e + f) <? 11
+    traverse_ (assert . (>=? 0)) [a,b,c,d,e,f]
 
     minimize (sum [a,b,c,d,e,f])
 
@@ -270,3 +297,16 @@ testHasmtlib = solveWith @OMT (solver z3) $ do
 
   --   -- return [a,b,c,d,e,f]
   --   solveMinimized total Nothing Nothing
+
+-- testSolver :: IO (Maybe [Integer])
+-- testSolver = solveIntegerLinearEqs Z3 [[2, 3, 4],[6, -3, 9],[2, 0, 1]] [20, -6, 8]
+
+-- testSolverMachine1 :: IO [[Integer]]
+-- testSolverMachine1 
+--   = solveIntegerLinearEqsAll Z3 1000
+--       [ [0,0,0,0,1,1]
+--       , [0,1,0,0,0,1]
+--       , [0,0,1,1,1,0]
+--       , [1,1,0,1,0,0]
+--       ]
+--       [3,5,4,7]

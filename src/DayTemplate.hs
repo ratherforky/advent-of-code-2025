@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 module DayTemplate where
 
 import AoCPrelude
@@ -7,11 +7,9 @@ import AoCPrelude
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
-
-"""
+egInput = [multi|
+|]
 
 
 ------------

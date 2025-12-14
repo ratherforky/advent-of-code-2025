@@ -3,6 +3,7 @@ module AoCPrelude (
   runDay,
   module Data.List,
   -- module Data.String.Interpolate,
+  multi, -- QuasiQuoter
   module Flow,
   -- Parsing
   module Text.Yoda,
@@ -30,6 +31,8 @@ import Data.Maybe
 import Data.Foldable
 import Data.Char
 
+-- Renaming `i` QuasiQuoter to `multi` to avoid name conflicts
+multi = i
 
 runDay :: Int -> (String -> b) -> IO b
 runDay day task = task <$> readFile [i|src/inputs/Day#{day}Input.txt|]

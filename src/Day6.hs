@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 module Day6 where
@@ -9,14 +9,13 @@ import AoCPrelude -- parsing
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 123 328  51 64 
  45 64  387 23 
   6 98  215 314
 *   +   *   +  
-"""
+|]
 
 data Op = Sum | Product deriving (Show, Eq)
 data Problems = MkProblems [[Int]] [Op] deriving (Show, Eq)

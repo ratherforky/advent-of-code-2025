@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 module Day9 where
 
 import AoCPrelude
@@ -7,9 +7,8 @@ import AoCPrelude
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 7,1
 11,1
 11,7
@@ -18,7 +17,7 @@ egInput = """
 2,5
 2,3
 7,3
-"""
+|]
 
 pointsP :: Parser [(Int, Int)]
 pointsP = everyLine ((,) <$> int <* char ',' <*> int)

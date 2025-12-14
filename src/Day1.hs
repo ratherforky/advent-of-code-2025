@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 module Day1 where
 
 import AoCPrelude -- parsing
@@ -21,8 +21,8 @@ cmdP = L <$ char 'L' <*> int
 -- >>> parse cmdP "L68"
 -- [(L 68,""),(L 6,"8")]
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
-egInput = """
+egInput :: String
+egInput = [multi|
 L68
 L30
 R48
@@ -33,7 +33,7 @@ L1
 L99
 R14
 L82
-"""
+|]
 
 -- >>> task1 egInput
 -- 3

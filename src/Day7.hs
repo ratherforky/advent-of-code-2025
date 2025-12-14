@@ -1,4 +1,4 @@
-{-# language MultilineStrings #-}
+{-# language QuasiQuotes #-}
 {-# language ImportQualifiedPost #-}
 {-# language LambdaCase #-}
 module Day7 where
@@ -13,9 +13,8 @@ import Data.Map.Strict qualified as Map
 -- Parsing --
 -------------
 
--- MultilineStrings extension, requires GHC 9.12.1 or above
 egInput :: String
-egInput = """
+egInput = [multi|
 .......S.......
 ...............
 .......^.......
@@ -32,7 +31,7 @@ egInput = """
 ...............
 .^.^.^.^.^...^.
 ...............
-"""
+|]
 
 data Cell = Empty | Spliter | Start deriving (Show, Eq)
 
