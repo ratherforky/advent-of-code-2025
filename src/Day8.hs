@@ -99,9 +99,6 @@ task1 numConnections
  .> product                                      -- Multiply
 
 
-id :: a -> a
-id x = x
-
 ------------
 -- Task 2 --
 ------------

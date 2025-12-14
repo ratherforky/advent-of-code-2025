@@ -3,8 +3,6 @@ module Day1 where
 
 import AoCPrelude -- parsing
 
-import Data.List
-
 ------------
 -- Task 1 --
 ------------

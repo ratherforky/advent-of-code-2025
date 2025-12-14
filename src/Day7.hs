@@ -6,7 +6,7 @@ module Day7 where
 import AoCPrelude
 import Control.Monad.Writer.Strict
 import Data.Monoid (Sum(..))
-import Data.Foldable (foldlM, foldrM)
+import Data.Foldable (foldlM)
 import Data.Map.Strict qualified as Map
 
 -------------

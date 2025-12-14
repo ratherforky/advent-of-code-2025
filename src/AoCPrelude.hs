@@ -1,4 +1,5 @@
 {-# language QuasiQuotes #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module AoCPrelude (
   runDay,
   module Data.List,

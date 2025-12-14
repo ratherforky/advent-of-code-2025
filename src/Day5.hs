@@ -1,5 +1,6 @@
 {-# language QuasiQuotes #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module Day5 where
 
 import AoCPrelude -- parsing
@@ -89,7 +90,7 @@ task2 :: String -> Int
 task2
   = parseInput databaseP
  .> getRanges
- .> sortOn (\(MkRange l r) -> l)
+ .> sortOn (\(MkRange l _) -> l)
  .> (\(MkRange l r:ranges)
        -> foldl' f (r, r - l + 1) ranges)
  .> snd

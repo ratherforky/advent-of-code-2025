@@ -1,4 +1,5 @@
 {-# language QuasiQuotes #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-x-partial #-}
 module Day9 where
 
 import AoCPrelude
@@ -54,7 +55,7 @@ rectangleArea ((x1,y1), (x2, y2)) = (abs (x2 - x1) + 1) * (abs (y2 - y1) + 1)
 -- Task 2 --
 ------------
 
--- runTask2 :: IO Int
+runTask2 :: IO Int
 runTask2 = runDay 9 task2
 
 type Polygon = [((Int,Int), (Int,Int))]
@@ -75,7 +76,7 @@ type Polygon = [((Int,Int), (Int,Int))]
 -- >>> pickOnePointInside ((17217,85603),(82570,14626))
 -- (17218,85602)
 
--- task2 :: String -> Int
+task2 :: String -> Int
 task2 str
   = points
     |> (\ps -> [ (p,q) | p <- ps, q <- ps, p < q ]) -- All unique pairings of points.
@@ -142,7 +143,7 @@ isInside xy poly
     |> length
     |> odd
 
--- rightIntersections :: (Int,Int) -> Polygon -> Int
+rightIntersections :: (Int, Int) -> Polygon -> [((Int, Int), (Int, Int))]
 rightIntersections xy poly = filter (rightProjectionIntersects' poly xy) poly
 
 -- Adapted from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#cite_note-GGIII-3
@@ -185,8 +186,8 @@ rightProjectionIntersects' poly (x1,y1) ((x3,y3), (x4, y4))
     u = negate (fromIntegral (y1 - y3) / fromIntegral (y3 - y4))
     t = negate (fromIntegral ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / fromIntegral (y3 - y4))
 
-    Just ((x5, y5), _) = find (\(_, xy) -> xy == (x3,y3)) poly
-    Just (_, (x6, y6)) = find (\(xy, _) -> xy == (x4,y4)) poly
+    Just ((_x5, y5), _) = find (\(_, xy) -> xy == (x3,y3)) poly
+    Just (_, (_x6, y6)) = find (\(xy, _) -> xy == (x4,y4)) poly
 
     dirSign = signum ((y5 - y3) * (y6 - y3))
 
@@ -221,23 +222,25 @@ linesIntersect ((x1,y1), (x2,y2)) ((x3,y3), (x4, y4))
 -- (0.6666667,0.71428573)
 
 
+egInputPoints :: [(Int, Int)]
 egInputPoints = parseInput pointsP egInput
 
+egInputPoly :: [((Int, Int), (Int, Int))]
 egInputPoly = makePolygon egInputPoints
 
 -- rightProjectionIntersectsDebug :: (Int,Int) -> ((Int,Int), (Int,Int)) -> Bool
-rightProjectionIntersectsDebug poly (x1,y1) ((x3,y3), (x4, y4))
-  = (y3 == y4, (x5, y5) , (x6, y6), dirSign)
-  -- Special case for horizontal edges. may change inside/outside or not
-  where
-    u, t :: Float
-    u = negate (fromIntegral (y1 - y3) / fromIntegral (y3 - y4))
-    t = negate (fromIntegral ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / fromIntegral (y3 - y4))
+-- rightProjectionIntersectsDebug poly (x1,y1) ((x3,y3), (x4, y4))
+--   = (y3 == y4, (x5, y5) , (x6, y6), dirSign)
+--   -- Special case for horizontal edges. may change inside/outside or not
+--   where
+--     u, t :: Float
+--     u = negate (fromIntegral (y1 - y3) / fromIntegral (y3 - y4))
+--     t = negate (fromIntegral ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / fromIntegral (y3 - y4))
 
-    Just ((x5, y5), _) = find (\(_, xy) -> xy == (x3,y3)) poly
-    Just (_, (x6, y6)) = find (\(xy, _) -> xy == (x4,y4)) poly
+--     Just ((x5, y5), _) = find (\(_, xy) -> xy == (x3,y3)) poly
+--     Just (_, (x6, y6)) = find (\(xy, _) -> xy == (x4,y4)) poly
 
-    dirSign = signum ((y5 - y3) * (y6 - y3))
+--     dirSign = signum ((y5 - y3) * (y6 - y3))
 
 
 -- >>> rightProjectionIntersectsDebug egInputPoly (0,2) ((11,1),(11,7))
@@ -272,7 +275,7 @@ writePolygon points
   = writeFile "day9.poly" $ unlines [ [ showPoint (x, y) | x <- [0..maxX] ] | y <- [0..maxY]]
   -- = print [ [ (x, y) `rightIntersections` polygon | x <- [0..maxX] ] | y <- [0..maxY]]
   where
-    polygon = makePolygon points
+    -- polygon = makePolygon points
     maxX = maximum (map fst points)
     maxY = maximum (map snd points)
 

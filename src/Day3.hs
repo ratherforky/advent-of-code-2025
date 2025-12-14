@@ -1,4 +1,5 @@
 {-# language QuasiQuotes #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module Day3 where
 
 import AoCPrelude -- parsing
@@ -36,9 +37,9 @@ maxBatteryDigitsN n ds
   | n <= 0 = []
   | otherwise = tails ds
              |> take (length ds - n + 1)
-             |> foldl' (\(maxVal, rest) (d:ds)
+             |> foldl' (\(maxVal, rest) (d:ds')
                            -> if d > maxVal
-                              then (d, ds)
+                              then (d, ds')
                               else (maxVal, rest))
                        (-1, [])
              |> (\(maxVal, rest) -> maxVal : maxBatteryDigitsN (n - 1) rest)
