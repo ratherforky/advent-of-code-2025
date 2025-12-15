@@ -10,7 +10,7 @@ module AoCPrelude (
   module Text.Yoda,
   parseInput, digit, int, intSigned, integral,
   everyLine, manyIgnoreWhitespace, tok, delim, delim',
-  whitespace, spaces,
+  whitespace, spaces, newlineP,
   -- module Text.Pretty.Simple,
   void,
   -- Misc
@@ -33,7 +33,7 @@ import Data.Foldable
 import Data.Char
 
 -- Renaming `i` QuasiQuoter to `multi` to avoid name conflicts
-multi = i
+multi = __i
 
 runDay :: Int -> (String -> b) -> IO b
 runDay day task = task <$> readFile [i|src/inputs/Day#{day}Input.txt|]
@@ -42,10 +42,10 @@ parseInput :: Parser a -> String -> a
 parseInput parser = parseMaybe parser .> fromJust
 
 everyLine :: Parser a -> Parser [a]
-everyLine parser = many (parser <* (void newline <|> eof))
+everyLine parser = many (parser <* (newlineP <|> eof))
 
-newline :: Parser Char
-newline = char '\n'
+newlineP :: Parser ()
+newlineP = void (char '\n')
 
 manyIgnoreWhitespace :: Parser a -> Parser [a]
 manyIgnoreWhitespace parser = many (parser <* (whitespace <|> eof))

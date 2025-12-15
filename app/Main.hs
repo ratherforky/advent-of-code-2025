@@ -1,6 +1,6 @@
 module Main where
 
-import Day8
+import Day11
 
 main :: IO ()
 main = runTask2 >>= print
