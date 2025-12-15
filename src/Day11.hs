@@ -1,5 +1,6 @@
 {-# language QuasiQuotes #-}
 {-# language ImportQualifiedPost #-}
+{-# language ScopedTypeVariables #-}
 module Day11 where
 
 import AoCPrelude
@@ -12,6 +13,7 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Debug.Todo (todo_)
 import Data.Foldable (traverse_)
+import Data.Int (Int8, Int32)
 
 -------------
 -- Parsing --
@@ -31,20 +33,15 @@ hhh: ccc fff iii
 iii: out
 |]
 
--- data NodeID = You | Out | ID String
---   deriving (Show, Eq, Ord)
 type NodeID = String
 data Edges = MkEdges NodeID [NodeID]
   deriving (Show, Eq)
 
 nodeIDP :: Parser NodeID
 nodeIDP = some (satisfy isAlpha)
--- nodeIDP = You <$ string "you"
---       <|> Out <$ string "out"
---       <|> ID <$> some (satisfy isAlpha)
 
 -- >>> parseMaybe (nodeIDP) egInput
--- Just (ID "aaa")
+-- Just "aaa"
 
 nodeIDsP :: Parser [NodeID]
 nodeIDsP = delim' (pure ())
@@ -60,7 +57,6 @@ inputP :: Parser [Edges]
 inputP = some edgesP
 
 -- >>> parseMaybe inputP egInput
--- Just [MkEdges (ID "aaa") [You,ID "hhh"],MkEdges You [ID "bbb",ID "ccc"],MkEdges (ID "bbb") [ID "ddd",ID "eee"],MkEdges (ID "ccc") [ID "ddd",ID "eee",ID "fff"],MkEdges (ID "ddd") [ID "ggg"],MkEdges (ID "eee") [Out],MkEdges (ID "fff") [Out],MkEdges (ID "ggg") [Out],MkEdges (ID "hhh") [ID "ccc",ID "fff",ID "iii"],MkEdges (ID "iii") [Out]]
 
 -----------------
 -- Common Task --
@@ -80,67 +76,43 @@ toMapGraph
 numPathsBetween :: NodeID -> NodeID -> Map NodeID [NodeID] -> Int
 numPathsBetween initID targetID graph = numPathsFromNode initID
   where
+    numPathsFromNode :: NodeID -> Int
+    numPathsFromNode nID
+      | nID == "out" = 0 -- Base case: Got to "out" without finding targetID
+      | targetID `elem` connectedNodes = 1
+      | otherwise
+          = connectedNodes                      -- For each connected node
+            |> map (numPathsFromNodeMemoised !) -- Use the memoised recursive function to compute num paths
+            |> sum                              -- Add together num paths from all the connected nodes
+      where
+        connectedNodes = graph ! nID
+
+    -- Unsafe indexing of Map, throwing an error if the key (NodeID) isn't present
+    m ! k = case m Map.!? k of
+              Just ns -> ns
+              _ -> error $ "NodeID (" ++ k ++ ") was not in graph. Malformed input."
+
+    -- `numPathsFromNodeMemoised` is where the magic happens!
+    -- We create a *lazy* Map from `NodeID` to `Int`,
+    -- allowing us to store/memoise the number of paths from each node, without having to recompute.
+    -- Effectively, we are initialising a Map of `NodeID`s to *thunks* (i.e. not-yet-evaluated values)
+    -- which will evaluate to the result of `numPathsFromNode` for that node.
+
+    -- This is more-or-less dynamic programming for 'free'/cheap
+
+    -- Compared to imperative dynamic programming,
+    -- we don't have to check if values are already in the memo table (Haskell's thunks do this for us).
+    -- We also don't worry about the order we build up a memo table or threading it through our function calls.
+    -- The `Map NodeID Int` and the function `NodeID -> Int` are mutually recursive
+    -- and Haskell will sort out the dependency/interleaving for us.
     numPathsFromNodeMemoised :: LazyMap.Map NodeID Int
     numPathsFromNodeMemoised
       = graph
         |> Map.toAscList
-        |> LazyMap.fromAscList
-        |> LazyMap.insert "out" [] -- "out" isn't in graph but is a valid input to our memoised function
-        |> LazyMap.mapWithKey (\nodeID _ -> numPathsFromNode nodeID)
-
-    numPathsFromNode :: NodeID -> Int
-    numPathsFromNode nID
-      | nID == "out" = 0 -- Base case: Got to "out" without finding targetID
-      -- | nID `Set.member` seenNodes = 0 -- If nID has been seen before on this path then there's a cycle.
-      --                                  -- If a path to our target contains a cycle, then there are inifinite paths.
-      --                                  -- Since the 'inifinity' isn't a valid AoC answer, we assume that no paths to targetID contain a cycle,
-      --                                  -- and therefore any path with a cycle will never lead to targetID.
-      --                                  -- Therefore, we end the recursion and return 0.
-      | targetID `elem` connectedNodes = 1 --[[nID,targetID]]
-      | otherwise = sum (map (numPathsFromNodeMemoised !) connectedNodes)
-      -- | otherwise = sum (map (numPathsFromNode (Set.insert nID seenNodes)) connectedNodes)
-          -- = [ nID : path                  -- Add `nID` to the front of each recursive path
-          --   | node <- connectedNodes      -- For each node in the connected nodes
-          --   , path <- pathsFromNode node  -- Recursively find paths from that node
-          --   ]
-      where
-        connectedNodes = graph ! nID
-          -- = case graph Map.!? nID of
-          --     Just ns -> ns
-          --     _ -> error $ "NodeID (" ++ nID ++  ") was not in graph. Malformed input."
-
-    m ! k = case m Map.!? k of
-              Just ns -> ns
-              _ -> error $ "NodeID (" ++ k ++  ") was not in graph. Malformed input."
-
-
-
-detectCycle :: NodeID -> Map NodeID [NodeID] -> Either NodeID ()
-detectCycle startNode graph = go Set.empty startNode
-  where
-    go seenNodes nID
-      | nID == "out" = Right ()
-      | nID `Set.member` seenNodes = Left nID
-      | otherwise = traverse_ (go (Set.insert nID seenNodes)) connectedNodes
-      where
-        connectedNodes
-          = case graph Map.!? nID of
-              Just ns -> ns
-              _ -> error $ "NodeID (" ++ nID ++  ") was not in graph. Malformed input."
-
-dfsNodesFrom :: NodeID -> Map NodeID [NodeID] -> [NodeID]
-dfsNodesFrom startNode graph = go Set.empty startNode
-  where
-    go seenNodes nID
-      | nID == "out" = ["out"]
-      | nID `Set.member` seenNodes = error "Cycle detected!"
-      | otherwise = nID : concatMap (go (Set.insert nID seenNodes)) connectedNodes
-      where
-        connectedNodes
-          = case graph Map.!? nID of
-              Just ns -> ns
-              _ -> error $ "NodeID (" ++ nID ++  ") was not in graph. Malformed input."
-
+        |> LazyMap.fromAscList     -- We ensure the domain of our function is in the Map by using the graph Map
+        |> LazyMap.insert "out" [] -- and adding "out", since it isn't in graph but is a valid input to our memoised function
+        |> LazyMap.mapWithKey (\nodeID _ -> numPathsFromNode nodeID) -- Mutual recursion with `numPathsFromNode`, creates a thunk
+                                                                     -- which will be evaluated when needed
 
 ------------
 -- Task 1 --
