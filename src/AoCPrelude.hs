@@ -22,6 +22,7 @@ module AoCPrelude (
 
 import Data.List
 import Data.String.Interpolate
+import Data.String.QQ (s)
 import Flow
 -- import Text.Megaparsec hiding (State)
 -- import Text.Megaparsec.Char
@@ -33,7 +34,7 @@ import Data.Foldable
 import Data.Char
 
 -- Renaming `i` QuasiQuoter to `multi` to avoid name conflicts
-multi = __i
+multi = s
 
 runDay :: Int -> (String -> b) -> IO b
 runDay day task = task <$> readFile [i|src/inputs/Day#{day}Input.txt|]

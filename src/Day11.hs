@@ -9,11 +9,6 @@ import Data.Char (isAlpha)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Map.Lazy qualified as LazyMap
-import Data.Set (Set)
-import Data.Set qualified as Set
-import Debug.Todo (todo_)
-import Data.Foldable (traverse_)
-import Data.Int (Int8, Int32)
 
 -------------
 -- Parsing --

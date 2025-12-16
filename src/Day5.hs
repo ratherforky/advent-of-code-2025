@@ -35,7 +35,7 @@ databaseP :: Parser Database
 databaseP = MkDB <$> delim rangeP "\n" (string "\n\n") <*> everyLine int
 
 -- >>> parse databaseP egInput
--- [(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8,11,17,32],""),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8,11,17],"32"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8,11],"17\n32"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8],"11\n17\n32"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5],"8\n11\n17\n32"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1],"5\n8\n11\n17\n32"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [],"1\n5\n8\n11\n17\n32")]
+-- [(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8,11,17,32],""),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8,11,17],"32\n"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8,11],"17\n32\n"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5,8],"11\n17\n32\n"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1,5],"8\n11\n17\n32\n"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [1],"5\n8\n11\n17\n32\n"),(MkDB [MkRange 3 5,MkRange 10 14,MkRange 16 20,MkRange 12 18] [],"1\n5\n8\n11\n17\n32\n")]
 
 
 
