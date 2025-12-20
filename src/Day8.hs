@@ -54,7 +54,7 @@ pointsP :: Parser [Point3D]
 pointsP = everyLine pointP
 
 -- >>> parseMaybe pointsP egInput
--- Just [Point 162 817 812,Point 57 618 57,Point 906 360 560,Point 592 479 940,Point 352 342 300,Point 466 668 158,Point 542 29 236,Point 431 825 988,Point 739 650 466,Point 52 470 668,Point 216 146 977,Point 819 987 18,Point 117 168 530,Point 805 96 715,Point 346 949 466,Point 970 615 88,Point 941 993 340,Point 862 61 35,Point 984 92 344,Point 425 690 689]
+-- Just [MkPoint {x = 162, y = 817, z = 812},MkPoint {x = 57, y = 618, z = 57},MkPoint {x = 906, y = 360, z = 560},MkPoint {x = 592, y = 479, z = 940},MkPoint {x = 352, y = 342, z = 300},MkPoint {x = 466, y = 668, z = 158},MkPoint {x = 542, y = 29, z = 236},MkPoint {x = 431, y = 825, z = 988},MkPoint {x = 739, y = 650, z = 466},MkPoint {x = 52, y = 470, z = 668},MkPoint {x = 216, y = 146, z = 977},MkPoint {x = 819, y = 987, z = 18},MkPoint {x = 117, y = 168, z = 530},MkPoint {x = 805, y = 96, z = 715},MkPoint {x = 346, y = 949, z = 466},MkPoint {x = 970, y = 615, z = 88},MkPoint {x = 941, y = 993, z = 340},MkPoint {x = 862, y = 61, z = 35},MkPoint {x = 984, y = 92, z = 344},MkPoint {x = 425, y = 690, z = 689}]
 
 ------------
 -- Common --
@@ -79,7 +79,7 @@ runTask1 = runDay 8 (task1 1000)
 
 task1 :: Int -> String -> Int
 task1 numConnections
-  = parseInput pointsP 
+  = parseInput pointsP
  .> (\ps -> [ (p,q) | p <- ps, q <- ps, p < q ]) -- All unique pairings of points.
                                                  -- `p < q` ensures no reflexive connections
                                                  -- and no duplicates of (p, q) and (q, p)
@@ -120,7 +120,7 @@ task2 str
     -- lazy scanl adding one edge at a time and tracking the last edge added
     |> scanl step (initGraph, (MkPoint 0 0 0, MkPoint 0 0 0))
 
-    -- lazy find which will go through the list from scanl and 
+    -- lazy find which will go through the list from scanl and
     -- exit early once a fullyConnected graph is found,
     -- so the scanl won't keep adding edges past the point of the graph being fully connected
     |> find (fst .> fullyConnected)
@@ -164,5 +164,5 @@ showBitsBigEndian :: Bits a => Int -> Int -> a -> String
 showBitsBigEndian firstBit numBits v
   = reverse
       [ if testBit v j then '1' else '0'
-      | j <- [firstBit .. firstBit + numBits - 1] 
+      | j <- [firstBit .. firstBit + numBits - 1]
       ]

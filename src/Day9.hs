@@ -89,9 +89,9 @@ task2 str
   where
     points = parseInput pointsP str
     polygon = makePolygon points
-    
+
     validRectangle r
-      = True -- not (any (pointIsInRectangle r) points) 
+      = True -- not (any (pointIsInRectangle r) points)
      && pickOnePointInside r `isInside` polygon   -- Check one point inside rectangle to make sure it's in polygon,
                                                   -- excluding the case where rectangle encloses a void outside the polygon
      && not (any (pickOnePointInside .> pointIsInRectangle r) polygon)

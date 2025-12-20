@@ -35,6 +35,7 @@ egInput = [multi|
 |]
 
 -- >>> egInput
+-- "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}\n[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}\n[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}\n"
 
 data Machine = MkInputLine
   { target   :: [Light]
@@ -62,7 +63,7 @@ joltagesP = delim' (tok "{") (fromIntegral <$> int) (char ',') (tok "}")
 
 machineP :: Parser Machine
 machineP
-  = MkInputLine 
+  = MkInputLine
       <$  char '[' <*> some lightP <* tok "]"
       <*> (some buttonP)
       <*> joltagesP
@@ -71,19 +72,19 @@ machinesP :: Parser [Machine]
 machinesP = everyLine machineP
 
 -- >>> parseMaybe machinesP egInput
--- Just [MkInputLine {lights = [Off,On,On,Off], buttons = [[3],[1,3],[2],[2,3],[0,2],[0,1]], joltages = [3,5,4,7]},MkInputLine {lights = [Off,Off,Off,On,Off], buttons = [[0,2,3,4],[2,3],[0,4],[0,1,2],[1,2,3,4]], joltages = [7,5,12,7,2]},MkInputLine {lights = [Off,On,On,On,Off,On], buttons = [[0,1,2,3,4],[0,3,4],[0,1,2,4,5],[1,2]], joltages = [10,11,11,5,10,5]}]
+-- Just [MkInputLine {target = [Off,On,On,Off], buttons = [[3],[1,3],[2],[2,3],[0,2],[0,1]], joltages = [3,5,4,7]},MkInputLine {target = [Off,Off,Off,On,Off], buttons = [[0,2,3,4],[2,3],[0,4],[0,1,2],[1,2,3,4]], joltages = [7,5,12,7,2]},MkInputLine {target = [Off,On,On,On,Off,On], buttons = [[0,1,2,3,4],[0,3,4],[0,1,2,4,5],[1,2]], joltages = [10,11,11,5,10,5]}]
 
 egMachines :: [Machine]
 egMachines = parseInput machinesP egInput
 
 -- >>> egMachines
--- [MkInputLine {lights = [Off,On,On,Off], buttons = [[3],[1,3],[2],[2,3],[0,2],[0,1]], joltages = [3,5,4,7]},MkInputLine {lights = [Off,Off,Off,On,Off], buttons = [[0,2,3,4],[2,3],[0,4],[0,1,2],[1,2,3,4]], joltages = [7,5,12,7,2]},MkInputLine {lights = [Off,On,On,On,Off,On], buttons = [[0,1,2,3,4],[0,3,4],[0,1,2,4,5],[1,2]], joltages = [10,11,11,5,10,5]}]
+-- [MkInputLine {target = [Off,On,On,Off], buttons = [[3],[1,3],[2],[2,3],[0,2],[0,1]], joltages = [3,5,4,7]},MkInputLine {target = [Off,Off,Off,On,Off], buttons = [[0,2,3,4],[2,3],[0,4],[0,1,2],[1,2,3,4]], joltages = [7,5,12,7,2]},MkInputLine {target = [Off,On,On,On,Off,On], buttons = [[0,1,2,3,4],[0,3,4],[0,1,2,4,5],[1,2]], joltages = [10,11,11,5,10,5]}]
 
 egMachine :: Machine
 egMachine = head egMachines
 
 -- >>> egMachine
--- MkInputLine {lights = [Off,On,On,Off], buttons = [[3],[1,3],[2],[2,3],[0,2],[0,1]], joltages = [3,5,4,7]}
+-- MkInputLine {target = [Off,On,On,Off], buttons = [[3],[1,3],[2],[2,3],[0,2],[0,1]], joltages = [3,5,4,7]}
 
 egTarget :: [Light]
 egTarget = egMachine.target
@@ -230,7 +231,7 @@ solveMinButtonPresses m = solveWith @OMT (solver z3) $ do
   -- All variables are the number of button presses for a particular button,
   -- therefore they must always be 0 or more. No negative presses.
   for_ vs $ \v -> do
-    assert $ v >=? 0            
+    assert $ v >=? 0
 
 
   for_ (zip [0 ..] m.joltages) $ \(light, targetJoltage) -> do
@@ -280,7 +281,7 @@ testHasmtlib = solveWith @OMT (solver z3) $ do
     -- assert $ distinct xs
 
     -- return xs
-  
+
 -- testHasmtlib :: IO  (Result,  Maybe (Decoded (Result, Solution)))
   -- solveWith @Pipe (solver z3) $ do
   --   setLogic "QF_LIA"
@@ -303,7 +304,7 @@ testHasmtlib = solveWith @OMT (solver z3) $ do
 -- testSolver = solveIntegerLinearEqs Z3 [[2, 3, 4],[6, -3, 9],[2, 0, 1]] [20, -6, 8]
 
 -- testSolverMachine1 :: IO [[Integer]]
--- testSolverMachine1 
+-- testSolverMachine1
 --   = solveIntegerLinearEqsAll Z3 1000
 --       [ [0,0,0,0,1,1]
 --       , [0,1,0,0,0,1]
